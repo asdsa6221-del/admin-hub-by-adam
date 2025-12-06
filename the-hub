@@ -33,7 +33,7 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 400, 0, 360) -- slightly taller for lay down
+Frame.Size = UDim2.new(0, 400, 0, 300) -- slightly shorter without teleport
 Frame.Position = UDim2.fromOffset(50, 150)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 80, 200)
 Frame.BorderSizePixel = 0
@@ -126,19 +126,6 @@ local noclipBtn = MakeButton("Noclip: OFF", 2)
 local speedBtn = MakeButton("Speed: OFF", 3)
 local espBtn = MakeButton("ESP: OFF", 4)
 local layDownBtn = MakeButton("Lay Down: OFF", 5)
-local teleportBtn = MakeButton("Teleport Player", 6)
-
-local teleportBox = Instance.new("TextBox")
-teleportBox.Size = UDim2.new(0, 180, 0, 40)
-teleportBox.Position = UDim2.new(0, 10 + (7 % 2) * 190, 0, 50 + math.floor(7/2) * 50)
-teleportBox.BackgroundColor3 = Color3.fromRGB(20, 60, 170)
-teleportBox.TextColor3 = Color3.fromRGB(255,255,255)
-teleportBox.Font = Enum.Font.Gotham
-teleportBox.PlaceholderText = "Player name / first letters"
-teleportBox.Text = ""
-teleportBox.TextScaled = true
-teleportBox.BorderSizePixel = 0
-teleportBox.Parent = Frame
 
 --========================
 -- DRAGGING
@@ -343,31 +330,6 @@ Players.PlayerAdded:Connect(function(player)
 			espHighlights[player] = highlight
 		end
 	end)
-end)
-
---========================
--- TELEPORT PLAYER (improved partial name / display name)
---========================
-teleportBtn.MouseButton1Click:Connect(function()
-	local text = teleportBox.Text:lower()
-	if text == "" then return end
-	local target
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer then
-			local username = player.Name:lower()
-			local displayName = player.DisplayName:lower()
-			if username:sub(1, #text) == text or displayName:sub(1, #text) == text then
-				target = player
-				break
-			end
-		end
-	end
-	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-		local char = LocalPlayer.Character
-		if char and char:FindFirstChild("HumanoidRootPart") then
-			char.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
-		end
-	end
 end)
 
 --========================
