@@ -16,11 +16,13 @@ local noclipEnabled = false
 local infiniteJumpEnabled = false
 local speedEnabled = false
 local espEnabled = false
+local layDownEnabled = false
 
 local flySpeed = 120 -- updated fly speed
 local flyBV
 local flyBG
 local espHighlights = {}
+local originalHipHeight
 
 --========================
 -- UI CREATION
@@ -31,7 +33,7 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 400, 0, 320) -- wider, less tall
+Frame.Size = UDim2.new(0, 400, 0, 360) -- slightly taller for lay down
 Frame.Position = UDim2.fromOffset(50, 150)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 80, 200)
 Frame.BorderSizePixel = 0
@@ -123,11 +125,12 @@ local flyBtn = MakeButton("Fly: OFF", 1)
 local noclipBtn = MakeButton("Noclip: OFF", 2)
 local speedBtn = MakeButton("Speed: OFF", 3)
 local espBtn = MakeButton("ESP: OFF", 4)
-local teleportBtn = MakeButton("Teleport Player", 5)
+local layDownBtn = MakeButton("Lay Down: OFF", 5)
+local teleportBtn = MakeButton("Teleport Player", 6)
 
 local teleportBox = Instance.new("TextBox")
 teleportBox.Size = UDim2.new(0, 180, 0, 40)
-teleportBox.Position = UDim2.new(0, 10 + (6 % 2) * 190, 0, 50 + math.floor(6/2) * 50)
+teleportBox.Position = UDim2.new(0, 10 + (7 % 2) * 190, 0, 50 + math.floor(7/2) * 50)
 teleportBox.BackgroundColor3 = Color3.fromRGB(20, 60, 170)
 teleportBox.TextColor3 = Color3.fromRGB(255,255,255)
 teleportBox.Font = Enum.Font.Gotham
@@ -355,6 +358,32 @@ teleportBtn.MouseButton1Click:Connect(function()
 			char.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
 		end
 	end
+end)
+
+--========================
+-- LAY DOWN TOGGLE
+--========================
+layDownBtn.MouseButton1Click:Connect(function()
+	local char = LocalPlayer.Character
+	if not char then return end
+	local hum = char:FindFirstChild("Humanoid")
+	if not hum then return end
+
+	layDownEnabled = not layDownEnabled
+	if layDownEnabled then
+		originalHipHeight = hum.HipHeight
+		hum.HipHeight = 0
+		hum.PlatformStand = true
+		for _, part in ipairs(char:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.Orientation = Vector3.new(0, part.Orientation.Y, 0)
+			end
+		end
+	else
+		hum.HipHeight = originalHipHeight or 2
+		hum.PlatformStand = false
+	end
+	layDownBtn.Text = layDownEnabled and "Lay Down: ON" or "Lay Down: OFF"
 end)
 
 --========================
