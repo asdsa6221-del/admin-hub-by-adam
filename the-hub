@@ -18,7 +18,7 @@ local speedEnabled = false
 local espEnabled = false
 local gravityEnabled = false
 
-local flySpeed = 60
+local flySpeed = 120 -- updated fly speed
 local flyBV
 local flyBG
 local espHighlights = {}
@@ -361,12 +361,12 @@ teleportBtn.MouseButton1Click:Connect(function()
 end)
 
 --========================
--- GRAVITY TOGGLE
+-- GRAVITY TOGGLE (3x)
 --========================
 gravityBtn.MouseButton1Click:Connect(function()
 	gravityEnabled = not gravityEnabled
 	if gravityEnabled then
-		Workspace.Gravity = defaultGravity * 2
+		Workspace.Gravity = defaultGravity * 3 -- 3x gravity
 	else
 		Workspace.Gravity = defaultGravity
 	end
