@@ -1,39 +1,43 @@
---// ADMIN HUB - CLEAN VERSION
+--// ADMIN HUB - CLEAN FULL VERSION
 --// Made by Adam
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
+--========================
+-- VARIABLES
+--========================
 local flyEnabled = false
 local noclipEnabled = false
 local infiniteJumpEnabled = false
-
+local speedEnabled = false
+local espEnabled = false
 local flySpeed = 60
 local flyVelocity
+local espHighlights = {}
 
-
---========================================================
---===================== UI CREATION =======================
---========================================================
-
+--========================
+-- UI CREATION
+--========================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "AdamAdminUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 300, 0, 350)
+Frame.Size = UDim2.new(0, 300, 0, 400)
 Frame.Position = UDim2.fromOffset(50, 200)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 80, 200)
 Frame.BorderSizePixel = 0
 Frame.Active = true
 Frame.Parent = ScreenGui
 
---===== Title =====--
+-- Title
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 40)
 Title.BackgroundTransparency = 1
@@ -43,11 +47,60 @@ Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.Parent = Frame
 
+-- Close button (top-right)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.Text = "A"
+CloseBtn.TextColor3 = Color3.fromRGB(255,255,255)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextScaled = true
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Parent = Frame
 
---========================================================
---==================== BUTTON BUILDER =====================
---========================================================
+-- Confirmation Frame
+local ConfirmFrame = Instance.new("Frame")
+ConfirmFrame.Size = UDim2.new(0, 250, 0, 120)
+ConfirmFrame.Position = UDim2.new(0.5, -125, 0.5, -60)
+ConfirmFrame.BackgroundColor3 = Color3.fromRGB(40, 90, 220)
+ConfirmFrame.Visible = false
+ConfirmFrame.Parent = ScreenGui
 
+local ConfirmText = Instance.new("TextLabel")
+ConfirmText.Size = UDim2.new(1, 0, 0, 50)
+ConfirmText.BackgroundTransparency = 1
+ConfirmText.Text = "Are you sure you want to close the hub?"
+ConfirmText.TextColor3 = Color3.fromRGB(255,255,255)
+ConfirmText.TextScaled = true
+ConfirmText.Font = Enum.Font.Gotham
+ConfirmText.Parent = ConfirmFrame
+
+local YesBtn = Instance.new("TextButton")
+YesBtn.Size = UDim2.new(0.45, -5, 0, 40)
+YesBtn.Position = UDim2.new(0, 5, 0, 70)
+YesBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+YesBtn.Text = "YES"
+YesBtn.Font = Enum.Font.GothamBold
+YesBtn.TextColor3 = Color3.fromRGB(255,255,255)
+YesBtn.TextScaled = true
+YesBtn.BorderSizePixel = 0
+YesBtn.Parent = ConfirmFrame
+
+local NoBtn = Instance.new("TextButton")
+NoBtn.Size = UDim2.new(0.45, -5, 0, 40)
+NoBtn.Position = UDim2.new(0.55, 0, 0, 70)
+NoBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+NoBtn.Text = "NO"
+NoBtn.Font = Enum.Font.GothamBold
+NoBtn.TextColor3 = Color3.fromRGB(255,255,255)
+NoBtn.TextScaled = true
+NoBtn.BorderSizePixel = 0
+NoBtn.Parent = ConfirmFrame
+
+--========================
+-- BUTTONS
+--========================
 local function MakeButton(text, order)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, -20, 0, 40)
@@ -62,28 +115,41 @@ local function MakeButton(text, order)
 	return btn
 end
 
-local infiniteJumpBtn = MakeButton("Infinite Jump: OFF", 0)
+local infJumpBtn = MakeButton("Infinite Jump: OFF", 0)
 local flyBtn = MakeButton("Fly: OFF", 1)
 local noclipBtn = MakeButton("Noclip: OFF", 2)
 local teleportBtn = MakeButton("Teleport Player", 3)
+local speedBtn = MakeButton("Speed: OFF", 4)
+local espBtn = MakeButton("ESP: OFF", 5)
+local gravityBtn = MakeButton("Set Gravity", 6)
 
 local teleportBox = Instance.new("TextBox")
 teleportBox.Size = UDim2.new(1, -20, 0, 40)
-teleportBox.Position = UDim2.new(0, 10, 0, 50 + (4 * 50))
+teleportBox.Position = UDim2.new(0, 10, 0, 50 + (7 * 50))
 teleportBox.BackgroundColor3 = Color3.fromRGB(20, 60, 170)
 teleportBox.TextColor3 = Color3.fromRGB(255,255,255)
 teleportBox.Font = Enum.Font.Gotham
-teleportBox.PlaceholderText = "Enter player name"
+teleportBox.PlaceholderText = "Player name"
 teleportBox.Text = ""
 teleportBox.TextScaled = true
 teleportBox.BorderSizePixel = 0
 teleportBox.Parent = Frame
 
+local gravityBox = Instance.new("TextBox")
+gravityBox.Size = UDim2.new(1, -20, 0, 40)
+gravityBox.Position = UDim2.new(0, 10, 0, 50 + (8 * 50))
+gravityBox.BackgroundColor3 = Color3.fromRGB(20, 60, 170)
+gravityBox.TextColor3 = Color3.fromRGB(255,255,255)
+gravityBox.Font = Enum.Font.Gotham
+gravityBox.PlaceholderText = "Gravity amount"
+gravityBox.Text = ""
+gravityBox.TextScaled = true
+gravityBox.BorderSizePixel = 0
+gravityBox.Parent = Frame
 
---========================================================
---==================== DRAGGING SYSTEM ====================
---========================================================
-
+--========================
+-- DRAGGING
+--========================
 local dragging = false
 local dragStart
 local startPos
@@ -95,13 +161,11 @@ Frame.InputBegan:Connect(function(input)
 		startPos = Frame.Position
 	end
 end)
-
 Frame.InputEnded:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = false
 	end
 end)
-
 UIS.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
 		local delta = input.Position - dragStart
@@ -112,11 +176,9 @@ UIS.InputChanged:Connect(function(input)
 	end
 end)
 
-
---========================================================
---===================== INFINITE JUMP =====================
---========================================================
-
+--========================
+-- INFINITE JUMP
+--========================
 UIS.JumpRequest:Connect(function()
 	if infiniteJumpEnabled then
 		local char = LocalPlayer.Character
@@ -126,31 +188,28 @@ UIS.JumpRequest:Connect(function()
 	end
 end)
 
-infiniteJumpBtn.MouseButton1Click:Connect(function()
+infJumpBtn.MouseButton1Click:Connect(function()
 	infiniteJumpEnabled = not infiniteJumpEnabled
-	infiniteJumpBtn.Text = infiniteJumpEnabled and "Infinite Jump: ON" or "Infinite Jump: OFF"
+	infJumpBtn.Text = infiniteJumpEnabled and "Infinite Jump: ON" or "Infinite Jump: OFF"
 end)
 
-
---========================================================
---========================== FLY ==========================
---========================================================
-
+--========================
+-- FLY
+--========================
 local function StartFly()
 	local char = LocalPlayer.Character
 	if not char then return end
-
 	local hrp = char:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
 
 	flyVelocity = Instance.new("BodyVelocity")
-	flyVelocity.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+	flyVelocity.MaxForce = Vector3.new(1e6,1e6,1e6)
 	flyVelocity.Parent = hrp
 
 	RunService.RenderStepped:Connect(function()
 		if flyEnabled and flyVelocity then
 			local move = char.Humanoid.MoveDirection
-			flyVelocity.Velocity = move * flySpeed + Vector3.new(0, 30, 0)
+			flyVelocity.Velocity = move * flySpeed + Vector3.new(0,30,0)
 		end
 	end)
 end
@@ -158,7 +217,6 @@ end
 flyBtn.MouseButton1Click:Connect(function()
 	flyEnabled = not flyEnabled
 	flyBtn.Text = flyEnabled and "Fly: ON" or "Fly: OFF"
-
 	if flyEnabled then
 		StartFly()
 	else
@@ -166,16 +224,14 @@ flyBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-
---========================================================
---========================= NOCLIP ========================
---========================================================
-
+--========================
+-- NOCLIP
+--========================
 RunService.Stepped:Connect(function()
 	if noclipEnabled then
 		local char = LocalPlayer.Character
 		if char then
-			for _, v in ipairs(char:GetDescendants()) do
+			for _,v in ipairs(char:GetDescendants()) do
 				if v:IsA("BasePart") then
 					v.CanCollide = false
 				end
@@ -183,26 +239,114 @@ RunService.Stepped:Connect(function()
 		end
 	end
 end)
-
 noclipBtn.MouseButton1Click:Connect(function()
 	noclipEnabled = not noclipEnabled
 	noclipBtn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
 end)
 
+--========================
+-- SPEED TOGGLE
+--========================
+speedBtn.MouseButton1Click:Connect(function()
+	local char = LocalPlayer.Character
+	if not char then return end
+	local hum = char:FindFirstChild("Humanoid")
+	if not hum then return end
+	speedEnabled = not speedEnabled
+	if speedEnabled then
+		hum.WalkSpeed = 32 -- default is 16, so 2x
+	else
+		hum.WalkSpeed = 16
+	end
+	speedBtn.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
+end)
 
---========================================================
---===================== TELEPORT PLAYER ===================
---========================================================
+--========================
+-- ESP TOGGLE
+--========================
+local function EnableESP()
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			if player.Character and not espHighlights[player] then
+				local highlight = Instance.new("Highlight")
+				highlight.Adornee = player.Character
+				highlight.FillColor = Color3.fromRGB(0, 255, 0)
+				highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
+				highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+				highlight.Parent = LocalPlayer:WaitForChild("PlayerGui")
+				espHighlights[player] = highlight
+			end
+		end
+	end
+end
 
+local function DisableESP()
+	for _, highlight in pairs(espHighlights) do
+		highlight:Destroy()
+	end
+	espHighlights = {}
+end
+
+espBtn.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	if espEnabled then
+		EnableESP()
+	else
+		DisableESP()
+	end
+	espBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+end)
+
+-- Update ESP for new players joining
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function()
+		if espEnabled and player ~= LocalPlayer then
+			local highlight = Instance.new("Highlight")
+			highlight.Adornee = player.Character
+			highlight.FillColor = Color3.fromRGB(0, 255, 0)
+			highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
+			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+			highlight.Parent = LocalPlayer:WaitForChild("PlayerGui")
+			espHighlights[player] = highlight
+		end
+	end)
+end)
+
+--========================
+-- TELEPORT PLAYER
+--========================
 teleportBtn.MouseButton1Click:Connect(function()
 	local name = teleportBox.Text
 	if name == "" then return end
-
 	local target = Players:FindFirstChild(name)
 	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
 		local char = LocalPlayer.Character
 		if char and char:FindFirstChild("HumanoidRootPart") then
-			char.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+			char.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
 		end
 	end
+end)
+
+--========================
+-- GRAVITY
+--========================
+gravityBtn.MouseButton1Click:Connect(function()
+	local val = tonumber(gravityBox.Text)
+	if val then
+		Workspace.Gravity = val
+	end
+end)
+
+--========================
+-- CLOSE BUTTON
+--========================
+CloseBtn.MouseButton1Click:Connect(function()
+	ConfirmFrame.Visible = true
+end)
+
+YesBtn.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+NoBtn.MouseButton1Click:Connect(function()
+	ConfirmFrame.Visible = false
 end)
