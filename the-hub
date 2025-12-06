@@ -33,7 +33,7 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 300, 0, 450)
+Frame.Size = UDim2.new(0, 400, 0, 320) -- wider, less tall
 Frame.Position = UDim2.fromOffset(50, 150)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 80, 200)
 Frame.BorderSizePixel = 0
@@ -42,18 +42,20 @@ Frame.Parent = ScreenGui
 
 -- Title
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Size = UDim2.new(1, -50, 0, 40) -- leave space for close button
+Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "Made by Adam"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Frame
 
 -- Close button (top-right)
 local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.Size = UDim2.new(0, 40, 0, 30)
+CloseBtn.Position = UDim2.new(1, -45, 0, 5)
 CloseBtn.Text = "A"
 CloseBtn.TextColor3 = Color3.fromRGB(255,255,255)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
@@ -106,8 +108,8 @@ NoBtn.Parent = ConfirmFrame
 --========================
 local function MakeButton(text, order)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, -20, 0, 40)
-	btn.Position = UDim2.new(0, 10, 0, 50 + (order * 50))
+	btn.Size = UDim2.new(0, 180, 0, 40) -- wider
+	btn.Position = UDim2.new(0, 10 + (order % 2) * 190, 0, 50 + math.floor(order/2) * 50)
 	btn.BackgroundColor3 = Color3.fromRGB(50, 110, 255)
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.Font = Enum.Font.GothamBold
@@ -121,14 +123,14 @@ end
 local infJumpBtn = MakeButton("Infinite Jump: OFF", 0)
 local flyBtn = MakeButton("Fly: OFF", 1)
 local noclipBtn = MakeButton("Noclip: OFF", 2)
-local teleportBtn = MakeButton("Teleport Player", 3)
-local speedBtn = MakeButton("Speed: OFF", 4)
+local speedBtn = MakeButton("Speed: OFF", 3)
+local gravityBtn = MakeButton("Gravity: OFF", 4)
 local espBtn = MakeButton("ESP: OFF", 5)
-local gravityBtn = MakeButton("Gravity: OFF", 6)
+local teleportBtn = MakeButton("Teleport Player", 6)
 
 local teleportBox = Instance.new("TextBox")
-teleportBox.Size = UDim2.new(1, -20, 0, 40)
-teleportBox.Position = UDim2.new(0, 10, 0, 50 + (7 * 50))
+teleportBox.Size = UDim2.new(0, 180, 0, 40)
+teleportBox.Position = UDim2.new(0, 10 + (7 % 2) * 190, 0, 50 + math.floor(7/2) * 50)
 teleportBox.BackgroundColor3 = Color3.fromRGB(20, 60, 170)
 teleportBox.TextColor3 = Color3.fromRGB(255,255,255)
 teleportBox.Font = Enum.Font.Gotham
@@ -214,7 +216,6 @@ local function StartFly()
 	if not char then return end
 	local hrp = char:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
-	if not hrp then return end
 
 	flyBV = Instance.new("BodyVelocity")
 	flyBV.MaxForce = Vector3.new(1e5,1e5,1e5)
@@ -236,7 +237,11 @@ local function StartFly()
 			if flyKeys.D then move = move + cam.CFrame.RightVector end
 			if flyKeys.Space then move = move + Vector3.new(0,1,0) end
 			if flyKeys.Shift then move = move - Vector3.new(0,1,0) end
-			flyBV.Velocity = move.Unit * flySpeed
+			if move.Magnitude > 0 then
+				flyBV.Velocity = move.Unit * flySpeed
+			else
+				flyBV.Velocity = Vector3.new(0,0,0)
+			end
 			flyBG.CFrame = CFrame.new(hrp.Position, hrp.Position + cam.CFrame.LookVector)
 		end
 	end)
@@ -274,7 +279,7 @@ noclipBtn.MouseButton1Click:Connect(function()
 end)
 
 --========================
--- SPEED TOGGLE
+-- SPEED TOGGLE (3.5x)
 --========================
 speedBtn.MouseButton1Click:Connect(function()
 	local char = LocalPlayer.Character
@@ -283,7 +288,7 @@ speedBtn.MouseButton1Click:Connect(function()
 	if not hum then return end
 	speedEnabled = not speedEnabled
 	if speedEnabled then
-		hum.WalkSpeed = 32
+		hum.WalkSpeed = 56 -- 16 * 3.5
 	else
 		hum.WalkSpeed = 16
 	end
