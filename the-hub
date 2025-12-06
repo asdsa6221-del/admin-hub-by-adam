@@ -1,0 +1,133 @@
+--[[ Made by Adam (Obfuscated) ]]--
+
+local t,b,h=string.char,string.byte,string.gsub
+local function E(s) local o="" for i=1,#s do o=o..t(b(s,i)~13) end return o end
+
+local L=game:GetService(E("vwfvlfqv")) -- Players
+local U=game:GetService(E("xbqqd~m")) -- RunService
+local J=game:GetService(E("mtuxxugq")) -- UserInputService
+local P=L[E("VhgvohRsxot")] 
+local M=P[E("Ilatk")] 
+local S=nil
+
+local a,d,f=false,false,false
+local y=60
+
+local function Z(v)local r=""for i=1,#v do r=r..t(b(v,i)~27)end return r end
+
+local G=Instance.new(E("VrjjhmPru"),P[E("PruahYru")])
+G.Name=E("LijmY{kmpUO")
+G.ResetOnSpawn=false
+
+local W=Instance.new(E("Woixs"),G)
+W.BackgroundColor3=Color3.fromRGB(30,80,200)
+W.Size=UDim2.new(0,300,0,350)
+W.Position=UDim2.new(0.05,0,0.2,0)
+W.BorderSizePixel=0
+W.Active=true
+W.Draggable=true
+
+local R=Instance.new(E("VxouZowz"),W)
+R.Size=UDim2.new(1,0,0,40)
+R.BackgroundTransparency=1
+R.Text=E("Xnoq| c~ Nkz`")
+R.TextColor3=Color3.fromRGB(255,255,255)
+R.TextScaled=true
+R.Font=Enum.Font.GothamBold
+
+local function K(ti,ox)
+    local n=Instance.new(E("VxouY~to"),W)
+    n.Size=UDim2.new(1,-20,0,40)
+    n.Position=UDim2.new(0,10,0,50+(ox*50))
+    n.BackgroundColor3=Color3.fromRGB(50,110,255)
+    n.TextColor3=Color3.fromRGB(255,255,255)
+    n.Font=Enum.Font.GothamBold
+    n.TextScaled=true
+    n.BorderSizePixel=0
+    n.Text=ti
+    return n
+end
+
+local IJ=K(E("Zuoqvx` Q|}m: >BB"),0)
+local FY=K(E("Oyb: >BB"),1)
+local NC=K(E("Apaeqk: >BB"),2)
+local TP=K(E("Zjovjlz Qonpj"),3)
+
+local TB=Instance.new(E("ZqdqktOop"),W)
+TB.Size=UDim2.new(1,-20,0,40)
+TB.Position=UDim2.new(0,10,0,50+(4*50))
+TB.BackgroundColor3=Color3.fromRGB(20,60,170)
+TB.TextColor3=Color3.fromRGB(255,255,255)
+TB.Font=Enum.Font.Gotham
+TB.PlaceholderText=E("Brdqz oa~kx lgkz")
+TB.Text=""
+TB.TextScaled=true
+TB.BorderSizePixel=0
+
+J[E("KvlhL|ttvv")]:Connect(function()
+    if f then
+        local c=P.Character
+        if c and c:FindFirstChild(E("Ix}nrvk"))then
+            c[E("Ix}nrvk")]:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+IJ.MouseButton1Click:Connect(function()
+    f=not f
+    IJ.Text=f and E("Zuoqvx` Q|}m: >FF")or E("Zuoqvx` Q|}m: >BB")
+end)
+
+local function F()
+    local c=P.Character
+    if not c then return end
+    local hr=c:FindFirstChild(E("Otfqm|xPxtOtfqc"))
+    if not hr then return end
+
+    S=Instance.new(E("Otfqm|xAzx"),hr)
+    S.MaxForce=Vector3.new(1e6,1e6,1e6)
+    S.Velocity=Vector3.new(0,0,0)
+
+    U.RenderStepped:Connect(function()
+        if a and S then
+            local m=c[E("Ix}nrvk")].MoveDirection
+            S.Velocity=m*y+Vector3.new(0,30,0)
+        end
+    end)
+end
+
+FY.MouseButton1Click:Connect(function()
+    a=not a
+    FY.Text=a and E("Oyb: >FF") or E("Oyb: >BB")
+    if a then F()else if S then S:Destroy()end end
+end)
+
+U.Stepped:Connect(function()
+    if d then
+        local c=P.Character
+        if c then
+            for _,p in ipairs(c:GetDescendants())do
+                if p:IsA(E("DpznNnxn"))then
+                    p.CanCollide=false
+                end
+            end
+        end
+    end
+end)
+
+NC.MouseButton1Click:Connect(function()
+    d=not d
+    NC.Text=d and E("Apaeqk: >FF")or E("Apaeqk: >BB")
+end)
+
+TP.MouseButton1Click:Connect(function()
+    local n=TB.Text
+    if n=="" then return end
+    local t=L:FindFirstChild(n)
+    if t and t.Character and t.Character:FindFirstChild(E("Otfqm|xPxtOtfqc")) then
+        local c=P.Character
+        if c and c:FindFirstChild(E("Otfqm|xPxtOtfqc")) then
+            c[E("Otfqm|xPxtOtfqc")].CFrame=t.Character[E("Otfqm|xPxtOtfqc")].CFrame+Vector3.new(0,3,0)
+        end
+    end
+end)
