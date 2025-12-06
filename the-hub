@@ -1,373 +1,192 @@
---// ADMIN HUB - FULL UPDATED VERSION
---// Made by Adam
+-- Admin Hub (Full Updated)
+-- LocalScript (StarterPlayerScripts)
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HRP = Character:WaitForChild("HumanoidRootPart")
 
---========================
--- VARIABLES
---========================
+-- CONFIG
+local infiniteJumpEnabled = false
 local flyEnabled = false
 local noclipEnabled = false
-local infiniteJumpEnabled = false
-local speedEnabled = false
+local speedMultiplier = 1
 local espEnabled = false
 local layDownEnabled = false
 
-local flySpeed = 120 -- updated fly speed
-local flyBV
-local flyBG
-local espHighlights = {}
-local originalHipHeight
-
---========================
--- UI CREATION
---========================
+--=======================
+-- GUI SETUP
+--=======================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AdamAdminUI"
-ScreenGui.ResetOnSpawn = false
+ScreenGui.Name = "AdminHub"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 400, 0, 300) -- slightly shorter without teleport
-Frame.Position = UDim2.fromOffset(50, 150)
+Frame.Size = UDim2.new(0, 250, 0, 300)
+Frame.Position = UDim2.new(0, 50, 0, 50)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 80, 200)
 Frame.BorderSizePixel = 0
-Frame.Active = true
 Frame.Parent = ScreenGui
 
--- Title
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -50, 0, 40) -- leave space for close button
-Title.Position = UDim2.new(0, 10, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "Made by Adam"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextScaled = true
-Title.Font = Enum.Font.GothamBold
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Frame
-
--- Close button (top-right)
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 40, 0, 30)
-CloseBtn.Position = UDim2.new(1, -45, 0, 5)
-CloseBtn.Text = "A"
-CloseBtn.TextColor3 = Color3.fromRGB(255,255,255)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextScaled = true
-CloseBtn.BorderSizePixel = 0
-CloseBtn.Parent = Frame
-
--- Confirmation Frame
-local ConfirmFrame = Instance.new("Frame")
-ConfirmFrame.Size = UDim2.new(0, 250, 0, 120)
-ConfirmFrame.Position = UDim2.new(0.5, -125, 0.5, -60)
-ConfirmFrame.BackgroundColor3 = Color3.fromRGB(40, 90, 220)
-ConfirmFrame.Visible = false
-ConfirmFrame.Parent = ScreenGui
-
-local ConfirmText = Instance.new("TextLabel")
-ConfirmText.Size = UDim2.new(1, 0, 0, 50)
-ConfirmText.BackgroundTransparency = 1
-ConfirmText.Text = "Are you sure you want to close the hub?"
-ConfirmText.TextColor3 = Color3.fromRGB(255,255,255)
-ConfirmText.TextScaled = true
-ConfirmText.Font = Enum.Font.Gotham
-ConfirmText.Parent = ConfirmFrame
-
-local YesBtn = Instance.new("TextButton")
-YesBtn.Size = UDim2.new(0.45, -5, 0, 40)
-YesBtn.Position = UDim2.new(0, 5, 0, 70)
-YesBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-YesBtn.Text = "YES"
-YesBtn.Font = Enum.Font.GothamBold
-YesBtn.TextColor3 = Color3.fromRGB(255,255,255)
-YesBtn.TextScaled = true
-YesBtn.BorderSizePixel = 0
-YesBtn.Parent = ConfirmFrame
-
-local NoBtn = Instance.new("TextButton")
-NoBtn.Size = UDim2.new(0.45, -5, 0, 40)
-NoBtn.Position = UDim2.new(0.55, 0, 0, 70)
-NoBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-NoBtn.Text = "NO"
-NoBtn.Font = Enum.Font.GothamBold
-NoBtn.TextColor3 = Color3.fromRGB(255,255,255)
-NoBtn.TextScaled = true
-NoBtn.BorderSizePixel = 0
-NoBtn.Parent = ConfirmFrame
-
---========================
--- BUTTONS
---========================
-local function MakeButton(text, order)
+-- Helper to create buttons
+local function CreateButton(name, yOffset)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 180, 0, 40) -- wider
-	btn.Position = UDim2.new(0, 10 + (order % 2) * 190, 0, 50 + math.floor(order/2) * 50)
+	btn.Size = UDim2.new(0, 230, 0, 30)
+	btn.Position = UDim2.new(0, 10, 0, yOffset)
 	btn.BackgroundColor3 = Color3.fromRGB(50, 110, 255)
+	btn.BorderSizePixel = 0
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.Font = Enum.Font.GothamBold
 	btn.TextScaled = true
-	btn.BorderSizePixel = 0
-	btn.Text = text
+	btn.Text = name
 	btn.Parent = Frame
 	return btn
 end
 
-local infJumpBtn = MakeButton("Infinite Jump: OFF", 0)
-local flyBtn = MakeButton("Fly: OFF", 1)
-local noclipBtn = MakeButton("Noclip: OFF", 2)
-local speedBtn = MakeButton("Speed: OFF", 3)
-local espBtn = MakeButton("ESP: OFF", 4)
-local layDownBtn = MakeButton("Lay Down: OFF", 5)
+-- Buttons
+local IJBtn = CreateButton("Infinite Jump: OFF", 10)
+local FlyBtn = CreateButton("Fly: OFF", 50)
+local NoClipBtn = CreateButton("NoClip: OFF", 90)
+local SpeedBtn = CreateButton("Speed: 1x", 130)
+local ESPBtn = CreateButton("ESP: OFF", 170)
+local LayDownBtn = CreateButton("Lay Down: OFF", 210)
 
---========================
--- DRAGGING
---========================
-local dragging = false
+--=======================
+-- BUTTON TOGGLE LOGIC
+--=======================
+
+-- Infinite Jump
+IJBtn.MouseButton1Click:Connect(function()
+	infiniteJumpEnabled = not infiniteJumpEnabled
+	IJBtn.Text = infiniteJumpEnabled and "Infinite Jump: ON" or "Infinite Jump: OFF"
+end)
+
+-- Fly
+FlyBtn.MouseButton1Click:Connect(function()
+	flyEnabled = not flyEnabled
+	FlyBtn.Text = flyEnabled and "Fly: ON" or "Fly: OFF"
+end)
+
+-- NoClip
+NoClipBtn.MouseButton1Click:Connect(function()
+	noclipEnabled = not noclipEnabled
+	NoClipBtn.Text = noclipEnabled and "NoClip: ON" or "NoClip: OFF"
+end)
+
+-- Speed
+SpeedBtn.MouseButton1Click:Connect(function()
+	if speedMultiplier == 1 then
+		speedMultiplier = 3.5
+	else
+		speedMultiplier = 1
+	end
+	SpeedBtn.Text = "Speed: "..speedMultiplier.."x"
+	Humanoid.WalkSpeed = 16 * speedMultiplier
+end)
+
+-- ESP
+ESPBtn.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	ESPBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+end)
+
+-- Lay Down
+LayDownBtn.MouseButton1Click:Connect(function()
+	layDownEnabled = not layDownEnabled
+	LayDownBtn.Text = layDownEnabled and "Lay Down: ON" or "Lay Down: OFF"
+
+	if layDownEnabled then
+		-- Set orientation so character lies down
+		for _, part in ipairs(Character:GetChildren()) do
+			if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+				part.Anchored = false
+				part.CanCollide = true
+			end
+		end
+		Humanoid.AutoRotate = false
+		HRP.CFrame = HRP.CFrame * CFrame.Angles(math.rad(90),0,0)
+	else
+		Humanoid.AutoRotate = true
+		HRP.CFrame = HRP.CFrame * CFrame.Angles(math.rad(-90),0,0)
+	end
+end)
+
+--=======================
+-- INFINITE JUMP
+--=======================
+UIS.JumpRequest:Connect(function()
+	if infiniteJumpEnabled then
+		Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+	end
+end)
+
+--=======================
+-- FLY
+--=======================
+RunService.RenderStepped:Connect(function()
+	if flyEnabled then
+		local moveVec = Vector3.new()
+		if UIS:IsKeyDown(Enum.KeyCode.W) then moveVec = moveVec + workspace.CurrentCamera.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.S) then moveVec = moveVec - workspace.CurrentCamera.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.A) then moveVec = moveVec - workspace.CurrentCamera.CFrame.RightVector end
+		if UIS:IsKeyDown(Enum.KeyCode.D) then moveVec = moveVec + workspace.CurrentCamera.CFrame.RightVector end
+		HRP.Velocity = moveVec * 50
+	end
+end)
+
+--=======================
+-- NOCLIP
+--=======================
+RunService.Stepped:Connect(function()
+	if noclipEnabled then
+		for _, part in ipairs(Character:GetChildren()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = false
+			end
+		end
+	end
+end)
+
+--=======================
+-- DRAG GUI
+--=======================
+local dragging
+local dragInput
 local dragStart
 local startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+		startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
 
 Frame.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = true
 		dragStart = input.Position
 		startPos = Frame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
 	end
 end)
-Frame.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = false
+
+Frame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
+		dragInput = input
 	end
 end)
+
 UIS.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-		local delta = input.Position - dragStart
-		Frame.Position = UDim2.new(
-			startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y
-		)
+	if input == dragInput and dragging then
+		update(input)
 	end
-end)
-
---========================
--- INFINITE JUMP
---========================
-UIS.JumpRequest:Connect(function()
-	if infiniteJumpEnabled then
-		local char = LocalPlayer.Character
-		if char and char:FindFirstChild("Humanoid") then
-			char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-		end
-	end
-end)
-
-infJumpBtn.MouseButton1Click:Connect(function()
-	infiniteJumpEnabled = not infiniteJumpEnabled
-	infJumpBtn.Text = infiniteJumpEnabled and "Infinite Jump: ON" or "Infinite Jump: OFF"
-end)
-
---========================
--- FLY (CONTROLLED)
---========================
-local moveVector = Vector3.new(0,0,0)
-local flyKeys = {W=false,A=false,S=false,D=false,Space=false,Shift=false}
-
-UIS.InputBegan:Connect(function(input)
-	if flyEnabled then
-		if input.KeyCode == Enum.KeyCode.W then flyKeys.W=true end
-		if input.KeyCode == Enum.KeyCode.A then flyKeys.A=true end
-		if input.KeyCode == Enum.KeyCode.S then flyKeys.S=true end
-		if input.KeyCode == Enum.KeyCode.D then flyKeys.D=true end
-		if input.KeyCode == Enum.KeyCode.Space then flyKeys.Space=true end
-		if input.KeyCode == Enum.KeyCode.LeftShift then flyKeys.Shift=true end
-	end
-end)
-UIS.InputEnded:Connect(function(input)
-	if input.KeyCode == Enum.KeyCode.W then flyKeys.W=false end
-	if input.KeyCode == Enum.KeyCode.A then flyKeys.A=false end
-	if input.KeyCode == Enum.KeyCode.S then flyKeys.S=false end
-	if input.KeyCode == Enum.KeyCode.D then flyKeys.D=false end
-	if input.KeyCode == Enum.KeyCode.Space then flyKeys.Space=false end
-	if input.KeyCode == Enum.KeyCode.LeftShift then flyKeys.Shift=false end
-end)
-
-local function StartFly()
-	local char = LocalPlayer.Character
-	if not char then return end
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
-
-	flyBV = Instance.new("BodyVelocity")
-	flyBV.MaxForce = Vector3.new(1e5,1e5,1e5)
-	flyBV.Velocity = Vector3.new(0,0,0)
-	flyBV.Parent = hrp
-
-	flyBG = Instance.new("BodyGyro")
-	flyBG.MaxTorque = Vector3.new(1e5,1e5,1e5)
-	flyBG.CFrame = hrp.CFrame
-	flyBG.Parent = hrp
-
-	RunService.RenderStepped:Connect(function()
-		if flyEnabled and flyBV then
-			local cam = workspace.CurrentCamera
-			local move = Vector3.new(0,0,0)
-			if flyKeys.W then move = move + cam.CFrame.LookVector end
-			if flyKeys.S then move = move - cam.CFrame.LookVector end
-			if flyKeys.A then move = move - cam.CFrame.RightVector end
-			if flyKeys.D then move = move + cam.CFrame.RightVector end
-			if flyKeys.Space then move = move + Vector3.new(0,1,0) end
-			if flyKeys.Shift then move = move - Vector3.new(0,1,0) end
-			if move.Magnitude > 0 then
-				flyBV.Velocity = move.Unit * flySpeed
-			else
-				flyBV.Velocity = Vector3.new(0,0,0)
-			end
-			flyBG.CFrame = CFrame.new(hrp.Position, hrp.Position + cam.CFrame.LookVector)
-		end
-	end)
-end
-
-flyBtn.MouseButton1Click:Connect(function()
-	flyEnabled = not flyEnabled
-	flyBtn.Text = flyEnabled and "Fly: ON" or "Fly: OFF"
-	if flyEnabled then
-		StartFly()
-	else
-		if flyBV then flyBV:Destroy() end
-		if flyBG then flyBG:Destroy() end
-	end
-end)
-
---========================
--- NOCLIP
---========================
-RunService.Stepped:Connect(function()
-	if noclipEnabled then
-		local char = LocalPlayer.Character
-		if char then
-			for _,v in ipairs(char:GetDescendants()) do
-				if v:IsA("BasePart") then
-					v.CanCollide = false
-				end
-			end
-		end
-	end
-end)
-noclipBtn.MouseButton1Click:Connect(function()
-	noclipEnabled = not noclipEnabled
-	noclipBtn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
-end)
-
---========================
--- SPEED TOGGLE (3.5x)
---========================
-speedBtn.MouseButton1Click:Connect(function()
-	local char = LocalPlayer.Character
-	if not char then return end
-	local hum = char:FindFirstChild("Humanoid")
-	if not hum then return end
-	speedEnabled = not speedEnabled
-	if speedEnabled then
-		hum.WalkSpeed = 56 -- 16 * 3.5
-	else
-		hum.WalkSpeed = 16
-	end
-	speedBtn.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
-end)
-
---========================
--- ESP TOGGLE
---========================
-local function EnableESP()
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer then
-			if player.Character and not espHighlights[player] then
-				local highlight = Instance.new("Highlight")
-				highlight.Adornee = player.Character
-				highlight.FillColor = Color3.fromRGB(0, 255, 0)
-				highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
-				highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-				highlight.Parent = LocalPlayer:WaitForChild("PlayerGui")
-				espHighlights[player] = highlight
-			end
-		end
-	end
-end
-
-local function DisableESP()
-	for _, highlight in pairs(espHighlights) do
-		highlight:Destroy()
-	end
-	espHighlights = {}
-end
-
-espBtn.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	if espEnabled then
-		EnableESP()
-	else
-		DisableESP()
-	end
-	espBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
-end)
-
-Players.PlayerAdded:Connect(function(player)
-	player.CharacterAdded:Connect(function()
-		if espEnabled and player ~= LocalPlayer then
-			local highlight = Instance.new("Highlight")
-			highlight.Adornee = player.Character
-			highlight.FillColor = Color3.fromRGB(0, 255, 0)
-			highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
-			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-			highlight.Parent = LocalPlayer:WaitForChild("PlayerGui")
-			espHighlights[player] = highlight
-		end
-	end)
-end)
-
---========================
--- LAY DOWN TOGGLE
---========================
-layDownBtn.MouseButton1Click:Connect(function()
-	local char = LocalPlayer.Character
-	if not char then return end
-	local hum = char:FindFirstChild("Humanoid")
-	if not hum then return end
-
-	layDownEnabled = not layDownEnabled
-	if layDownEnabled then
-		originalHipHeight = hum.HipHeight
-		hum.HipHeight = 0
-		hum.PlatformStand = true
-		for _, part in ipairs(char:GetChildren()) do
-			if part:IsA("BasePart") then
-				part.Orientation = Vector3.new(0, part.Orientation.Y, 0)
-			end
-		end
-	else
-		hum.HipHeight = originalHipHeight or 2
-		hum.PlatformStand = false
-	end
-	layDownBtn.Text = layDownEnabled and "Lay Down: ON" or "Lay Down: OFF"
-end)
-
---========================
--- CLOSE BUTTON
---========================
-CloseBtn.MouseButton1Click:Connect(function()
-	ConfirmFrame.Visible = true
-end)
-
-YesBtn.MouseButton1Click:Connect(function()
-	ScreenGui:Destroy()
-end)
-NoBtn.MouseButton1Click:Connect(function()
-	ConfirmFrame.Visible = false
 end)
