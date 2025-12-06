@@ -134,7 +134,7 @@ teleportBox.Position = UDim2.new(0, 10 + (7 % 2) * 190, 0, 50 + math.floor(7/2) 
 teleportBox.BackgroundColor3 = Color3.fromRGB(20, 60, 170)
 teleportBox.TextColor3 = Color3.fromRGB(255,255,255)
 teleportBox.Font = Enum.Font.Gotham
-teleportBox.PlaceholderText = "Player name"
+teleportBox.PlaceholderText = "Player name / first letters"
 teleportBox.Text = ""
 teleportBox.TextScaled = true
 teleportBox.BorderSizePixel = 0
@@ -346,12 +346,22 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 --========================
--- TELEPORT PLAYER (you to them)
+-- TELEPORT PLAYER (improved partial name / display name)
 --========================
 teleportBtn.MouseButton1Click:Connect(function()
-	local name = teleportBox.Text
-	if name == "" then return end
-	local target = Players:FindFirstChild(name)
+	local text = teleportBox.Text:lower()
+	if text == "" then return end
+	local target
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			local username = player.Name:lower()
+			local displayName = player.DisplayName:lower()
+			if username:sub(1, #text) == text or displayName:sub(1, #text) == text then
+				target = player
+				break
+			end
+		end
+	end
 	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
 		local char = LocalPlayer.Character
 		if char and char:FindFirstChild("HumanoidRootPart") then
